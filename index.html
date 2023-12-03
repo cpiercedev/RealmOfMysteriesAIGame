@@ -251,7 +251,7 @@
         }
 
         function TakeBoat() {
-            if (!quests.includes('Discover the island secret')) {
+            if (!quests.includes('Discover the island secret') ||  !completedQuests.includes('Discover the island secret')) {
                 addQuest('Discover the island secret');
             }
             document.getElementById('textPrompt').innerText = 'You sail to a mysterious island.';
