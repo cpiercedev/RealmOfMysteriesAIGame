@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Text Adventure</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #ddd;
+            font-family: "Courier New", monospace;
+        }
+
+        #gameWindow {
+            border: 5px solid #777;
+            width: 500px;
+            height: 700px;
+            padding: 10px;
+            background-color: #222;
+            margin: auto;
+        }
+
+        #statusBox {
+            border: 2px solid #555;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #1c1c1c;
+            color: #ffcc00;
+        }
+
+        #textPrompt {
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .visible {
+            display: inline;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #555;
+            color: white;
+            border: 1px solid #777;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameWindow">
+        <div id="statusBox">
+            <div id="status"></div>
+        </div>
+        <img id="sceneImage" src="" alt="Scene Image">
+        <div id="textPrompt"></div>
+        <button id="choice1" style="display: inline-block;"></button>
+        <button id="choice2" style="display: inline-block;"></button>
+        <button id="choice3" style="display: inline-block;"></button>
+        <button id="choice4" style="display: inline-block;"></button>
+        <button id="choice5" class="hidden"></button>
+    </div>
+
+    <script>
+        let inventory = [];
+        let quests = [];
+        let health = 100;
+        const allQuests = ['Find rare gem', 'Close the portal', 'Discover the island secret', 'Break the forest curse', 'Investigate the Castle Interior', 'Explore the Castle Grounds']; // All possible quests
+        let completedQuests = []; // Completed quests
+        function updateStatus() {
+            document.getElementById('status').innerHTML = `
+                <strong>Inventory:</strong> ${inventory.join(", ") || "Empty"}<br>
+                <strong>Health:</strong> ${health}<br>
+                <strong>Quests:</strong> ${quests.join(", ") || "None"}
+            `;
+            checkQuestCompletion();
+        }
+
+        function setChoice(buttonId, text, callback) {
+            const button = document.getElementById(buttonId);
+            button.innerText = text;
+            button.onclick = callback;
+            button.style.display = text ? 'inline-block' : 'none';
+        }
+
+        function showImage(imageUrl) {
+            document.getElementById('sceneImage').src = imageUrl;
+        }
+
+        function pickUpItem(item) {
+            if (!inventory.includes(item)) {
+                inventory.push(item);
+                alert(item + ' added to inventory');
+            } else {
+                alert('You already have this item.');
+            }
+            updateStatus();
+        }
+
+        function encounterHazard(damage, message) {
+            health -= damage;
+            updateStatus();
+            if (health <= 0) {
+                gameOver();
+            } else {
+                alert(message);
+            }
+        }
+
+        function gameOver() {
+            alert('You have died!');
+            Reset();
+            StartGame; // Restart the game or show game over screen
+        }
+
+        function completeQuest(questName) {
+            let index = quests.indexOf(questName);
+            if (index !== -1) {
+                quests.splice(index, 1); // Remove completed quest
+                alert('Quest Completed: ' + questName);
+                completedQuests.push(questName);
+
+                checkAllQuestsCompletion();
+                updateStatus();
+
+            }
+        }
+        function addQuest(questName) {
+            if (!quests.includes(questName)) {
+                quests.push(questName);
+                alert('Quest added: ' + questName);
+            }
+            else if (completedQuests.includes(questName)) {
+                alert('Quest already completed: ' + questName);
+            } else {
+                alert('You already have this quest.');
+            }
+            updateStatus();
+        }
+
+        function checkQuestCompletion() {
+            if (quests.includes('Find rare gem') && inventory.includes('rare gem')) {
+                completeQuest('Find rare gem');
+            }
+
+
+
+            // Check if all quests in allQuests are completed
+        }
+
+
+        function checkAllQuestsCompletion() {
+            if (completedQuests.length === allQuests.length) {
+                EndGame();
+            }
+        }
+        function EndGame() {
+            document.getElementById('textPrompt').innerText = 'Thank you for playing!';
+            // Hide all choice buttons
+            for (let i = 1; i <= 5; i++) {
+                setChoice('choice' + i, '', null);
+            }
+        }
+
+        // Utility function to hide unused choice buttons
+        function hideChoices(...choices) {
+            choices.forEach(choice => {
+                document.getElementById('choice' + choice).style.display = 'none';
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            StartGame();
+        });
+        function Reset() {
+            health = 100;
+            inventory = [];
+            quests = [];
+            completedQuests = [];
+            updateStatus();
+        }
+        function StartGame() {
+
+            document.getElementById('textPrompt').innerText = 'Welcome to the Realm of Mysteries! Paths extend north, south, east, and west.';
+            showImage('images/images/StartGame.jfif');  // Placeholder for start game image
+            setChoice('choice1', 'North', GoNorth);
+            setChoice('choice2', 'South', GoSouth);
+            setChoice('choice3', 'East', GoEast);
+            setChoice('choice4', 'West', GoWest);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function GoNorth() {
+            showImage('images/Forest.jfif');  // Placeholder for forest image
+            document.getElementById('textPrompt').innerText = 'You enter a forest with a cabin, river, clearing, and an altar. Return is also an option.';
+            setChoice('choice1', 'Cabin', EnterCabin);
+            setChoice('choice2', 'River', ReachRiver);
+            setChoice('choice3', 'Clearing', EnterClearing);
+            setChoice('choice4', 'Altar', EnterAltar);
+            setChoice('choice5', 'Return', StartGame);
+            updateStatus();
+        }
+
+        function EnterCabin() {
+            showImage('images/Cabin.jfif');  // Placeholder for cabin image
+            document.getElementById('textPrompt').innerText = 'Inside the cabin, you meet a sorceress. Do you talk, search the cabin, or leave?';
+            setChoice('choice1', 'Talk', TalkToSorceress);
+            setChoice('choice2', 'Search', SearchCabin);
+            setChoice('choice3', 'Leave', GoNorth);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function TalkToSorceress() {
+            showImage('images/Sorctalk.jfif');  // Placeholder for sorceress image
+            addQuest('Find rare gem');
+            document.getElementById('textPrompt').innerText = 'The sorceress gives you a quest to find a rare gem.';
+            updateStatus();
+        }
+
+        function SearchCabin() {
+            pickUpItem('magic wand');
+            document.getElementById('textPrompt').innerText = 'You find a magic wand.';
+            updateStatus();
+        }
+
+        function ReachRiver() {
+            showImage('images/River.jfif');  // Placeholder for river image
+            document.getElementById('textPrompt').innerText = 'By the river, you see a boat. Will you take it, or go back?';
+            setChoice('choice1', 'Take Boat', TakeBoat);
+            setChoice('choice2', 'Return', GoNorth);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function TakeBoat() {
+            if (!quests.includes('Discover the island secret')) {
+                addQuest('Discover the island secret');
+            }
+            document.getElementById('textPrompt').innerText = 'You sail to a mysterious island.';
+            setChoice('choice1', 'Explore Island', ExploreIsland);
+            setChoice('choice2', 'Sail Back', GoNorth);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function ExploreIsland() {
+            showImage('images/Island.jfif');  // Placeholder for island image
+            document.getElementById('textPrompt').innerText = 'On the island, you find a hidden treasure chest.';
+            setChoice('choice1', 'Open Chest', OpenChest);
+            setChoice('choice2', 'Return', TakeBoat);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            if (inventory.includes('ancient idol')) {
+                setChoice('choice3', 'Use Idol', UseIdol);
+            }
+            updateStatus();
+        }
+
+        function UseIdol() {
+            showImage('images/IslandTemple.jfif');
+            document.getElementById('textPrompt').innerText = 'You hold the ancient idol aloft, and it begins to glow with an ethereal light. The ground trembles beneath your feet as a deep rumbling sound fills the air. Gradually, the dense fog that envelops the island starts to lift, revealing a landscape transformed. Hidden pathways unfurl before you, leading to an ancient structure obscured by time and nature. The idol, now pulsating with energy, seems to resonate with a forgotten temple that emerges from the clearing mist. Intricate carvings on its walls depict a civilization of immense wisdom and power, now lost to history. The idol in your grasp is not just a relic; it is a key, a guide to the untold mysteries that lie within these ruins. The air is thick with anticipation as you stand before the temple’s grand entrance, the threshold to secrets untold. With resolve, you step forward, crossing into a world of ancient lore and hidden truths.';
+            updateStatus();
+            setChoice('choice1', 'Enter the Temple', EnterTemple);
+            setChoice('choice2', 'Return', ExploreIsland);
+            hideChoices(3, 4, 5);
+        }
+
+        function EnterTemple() {
+            showImage('images/AncientTemple.png'); // Placeholder for an image inside the temple
+            document.getElementById('textPrompt').innerText = 'As you cross the threshold, you enter a vast hall adorned with relics and murals that tell the story of a forgotten age. The air is cool and still, as if undisturbed for centuries. At the center of the hall, a pedestal awaits, seemingly designed to hold the idol. Beside it, a series of mechanisms and puzzles appear to guard the way deeper into the temple\’s heart. It\'s clear that the temple holds knowledge and treasures far beyond ordinary comprehension.The journey ahead promises both danger and discovery, but the secrets of the island are close, almost within reach.';
+            setChoice('choice1', 'Place the Idol', PlaceIdol);
+            setChoice('choice2', 'Examine Puzzles', ExaminePuzzles);
+            setChoice('choice3', 'Return', UseIdol);
+            hideChoices(4, 5);
+        }
+
+        function PlaceIdol() {
+            showImage('images/TemplePedestal.png'); // Placeholder for an image of the idol on the pedestal
+            document.getElementById('textPrompt').innerText = 'As you place the idol on the pedestal, a deep hum resonates throughout the temple. The walls begin to shift, revealing hidden chambers and passages. A beam of light emanates from the idol, pointing towards a newly revealed doorway. It seems that placing the idol has activated some ancient mechanism within the temple, opening the path to its innermost secrets.';
+            setChoice('choice1', 'Follow the Light', FollowLight);
+            setChoice('choice2', 'Return', EnterTemple);
+            hideChoices(3, 4, 5);
+        }
+
+        function ExaminePuzzles() {
+            showImage('images/TemplePuzzle.png'); // Placeholder for an image of the puzzle
+            document.getElementById('textPrompt').innerText = 'The puzzles appear to be a complex combination of levers, symbols, and inscriptions. Solving them might require understanding the lore of the temple depicted in the murals. As you study the puzzles, you begin to see patterns and clues emerging from the ancient symbols.';
+            setChoice('choice1', 'Attempt to Solve', SolvePuzzle);
+            setChoice('choice2', 'Return', EnterTemple);
+            hideChoices(3, 4, 5);
+        }
+
+        function FollowLight() {
+            showImage('images/SecretChamber.png'); // Placeholder for an image of a secret chamber
+            document.getElementById('textPrompt').innerText = 'Following the beam of light, you enter a chamber that houses the true heart of the temple. Here, an altar stands, surrounded by statues of figures from the island’s forgotten past. The altar seems to await something, perhaps another relic or a final piece of this ancient puzzle.';
+            setChoice('choice1', 'Examine Altar', ExamineAltar);
+            setChoice('choice2', 'Return', PlaceIdol);
+            hideChoices(3, 4, 5);
+        }
+
+        function SolvePuzzle() {
+            showImage('images/SolvedPuzzle.png'); // Placeholder for an image of the solved puzzle
+            document.getElementById('textPrompt').innerText = 'With patience and insight, you align the symbols and levers according to the patterns you deciphered. As the last piece falls into place, a hidden compartment opens, revealing a crystalline orb, pulsating with the same light as the idol.';
+            pickUpItem('crystalline orb');
+            setChoice('choice1', 'Take the Orb', TakeOrb);
+            setChoice('choice2', 'Return', ExaminePuzzles);
+            hideChoices(3, 4, 5);
+        }
+        function ExamineAltar() {
+            showImage('images/TempleAltar.png'); // Placeholder for an image of the altar
+            if (inventory.includes('crystalline orb')) {
+                document.getElementById('textPrompt').innerText = 'The altar, illuminated by the light from the orb in your possession, reveals its true purpose. It is a device of ancient power, used to connect with the wisdom of the lost civilization. Placing the orb on the altar might activate it, potentially unlocking the ultimate secrets of the island.';
+                setChoice('choice1', 'Place Orb on Altar', ActivateAltar);
+            } else {
+                document.getElementById('textPrompt').innerText = 'The altar stands majestically, surrounded by statues. It seems to be waiting for a missing piece, perhaps something you have yet to find.';
+            }
+            setChoice('choice2', 'Return', FollowLight);
+            hideChoices(3, 4, 5);
+        }
+
+        function TakeOrb() {
+            document.getElementById('textPrompt').innerText = 'You carefully take the crystalline orb, feeling a surge of energy as you hold it. This orb is clearly a key part of the temple’s mysteries.';
+            updateStatus();
+            setChoice('choice1', 'Return', SolvePuzzle);
+            hideChoices(2, 3, 4, 5);
+        }
+
+        function ActivateAltar() {
+            showImage('images/ActivatedAltar.png'); // Placeholder for an image of the activated altar
+            document.getElementById('textPrompt').innerText = 'As you place the orb on the altar, a brilliant light floods the chamber, and visions of the ancient civilization flash before your eyes. You see their achievements, their wisdom, their rise, and eventual fall. The temple was built to preserve their knowledge, waiting for someone worthy to rediscover it. As the vision fades, you find a tome left on the altar, filled with their knowledge. You have uncovered the greatest treasure of the island – the wisdom of a lost civilization.';
+            pickUpItem('ancient tome');
+            completeQuest('Discover the island secret');
+            setChoice('choice1', 'Return to Island', ExploreIsland);
+            hideChoices(2, 3, 4, 5);
+        }
+
+
+
+        function OpenChest() {
+            pickUpItem('rare gem');
+            document.getElementById('textPrompt').innerText = 'You find the rare gem inside the chest.';
+            updateStatus();
+        }
+
+        function EnterClearing() {
+            showImage('images/Clearing.png');  // Placeholder for clearing image
+            document.getElementById('textPrompt').innerText = 'You enter a clearing with a mysterious portal.';
+            setChoice('choice1', 'Enter Portal', EnterPortal);
+            setChoice('choice2', 'Return', GoNorth);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function EnterPortal() {
+            addQuest('Close the portal');
+            document.getElementById('textPrompt').innerText = 'You step through the portal into another dimension.';
+            setChoice('choice1', 'Search Dimension', SearchDimension);
+            setChoice('choice2', 'Return', EnterClearing);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function SearchDimension() {
+            pickUpItem('dimensional key');
+            document.getElementById('textPrompt').innerText =
+                'You find a dimensional key that can close the portal.';
+            setChoice('choice1', 'Use Key', UseKey);
+            setChoice('choice2', 'Return', EnterPortal);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function UseKey() {
+            completeQuest('Close the portal');
+            document.getElementById('textPrompt').innerText = 'You use the key and close the portal, stabilizing the dimensions.';
+            setChoice('choice1', 'Return', EnterClearing);
+            setChoice('choice2', '', null);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function EnterAltar() {
+            showImage('images/Altar.jfif');  // Placeholder for altar image
+            document.getElementById('textPrompt').innerText = 'You find an ancient altar with a hidden compartment.';
+            setChoice('choice1', 'Search Compartment', SearchCompartment);
+            setChoice('choice2', 'Return', GoNorth);
+            setChoice('choice3', '', null);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function SearchCompartment() {
+            pickUpItem('ancient idol');
+            document.getElementById('textPrompt').innerText = 'You find an ancient artifact.';
+            updateStatus();
+        }
+
+
+        function GoSouth() {
+            showImage('images/MysteriousForest.png');  // Replace with your forest image URL
+            document.getElementById('textPrompt').innerText = 'You head south and enter a mysterious forest. The air is thick with an ancient magic.';
+            setChoice('choice1', 'Explore Deep', ExploreDeep);
+            setChoice('choice2', 'Investigate Glowing Object', InvestigateGlow);
+            setChoice('choice3', 'Return', StartGame);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function ExploreDeep() {
+            showImage('images/DeepForest.png'); // Replace with a deep forest image URL
+            document.getElementById('textPrompt').innerText = 'As you go deeper, the forest gets darker but you notice a light in the distance.';
+            setChoice('choice1', 'Approach the Light', ApproachLight);
+            setChoice('choice2', 'Return', GoSouth);
+            hideChoices(3, 4, 5);
+        }
+
+        function InvestigateGlow() {
+            showImage('images/GlowingObject.png'); // Replace with an image URL of a glowing object
+            encounterHazard(10, 'You get pricked by thorns while reaching for the object, but it turns out to be a valuable gem!');
+            pickUpItem('mysterious gem');
+            setChoice('choice1', 'Return', GoSouth);
+            hideChoices(2, 3, 4, 5);
+        }
+
+        function ApproachLight() {
+            showImage('images/MysteriousLight.png'); // Replace with an image URL of a mysterious light
+            document.getElementById('textPrompt').innerText = 'The light is coming from a lantern held by a lost traveler who shares tales of the forest and hints at hidden paths.';
+            setChoice('choice1', 'Explore Hidden Path', ExploreHiddenPath);
+            setChoice('choice2', 'Return', GoSouth);
+            hideChoices(3, 4, 5);
+        }
+
+        function ExploreHiddenPath() {
+            showImage('images/HiddenPath.png'); // Replace with an image URL of a hidden path
+            if (inventory.includes('mysterious gem')) {
+                document.getElementById('textPrompt').innerText = 'Using the gem, you reveal a secret door in a tree, leading to an underground chamber.';
+                setChoice('choice1', 'Enter Chamber', EnterChamber);
+            } else {
+                document.getElementById('textPrompt').innerText = 'You find a hidden path but can’t seem to access it.';
+                setChoice('choice1', 'Return', GoSouth);
+            }
+            setChoice('choice2', '', null);
+            hideChoices(3, 4, 5);
+        }
+
+        function EnterChamber() {
+            showImage('images/UndergroundChamber.png'); // Replace with an image URL of an underground chamber
+            document.getElementById('textPrompt').innerText = 'Inside the chamber, you find ancient artifacts and inscriptions.';
+            pickUpItem('ancient artifact');
+            setChoice('choice1', 'Return', GoSouth);
+            hideChoices(2, 3, 4, 5);
+        }
+
+        function GoWest() {
+            showImage('images/AbandonedCastle.png');
+            document.getElementById('textPrompt').innerText = 'You travel west and reach an abandoned castle shrouded in mystery.';
+            setChoice('choice1', 'Explore Castle Grounds', ExploreCastleGrounds);
+            setChoice('choice2', 'Enter Castle', EnterCastle);
+            setChoice('choice3', 'Return', StartGame);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function ExploreCastleGrounds() {
+            showImage('images/CastleGrounds.png');
+            addQuest('Explore the Castle Grounds');
+            document.getElementById('textPrompt').innerText = 'You wander the overgrown castle grounds and find a hidden garden.';
+            setChoice('choice1', 'Search Garden', SearchGarden);
+            setChoice('choice2', 'Return', GoWest);
+            hideChoices(3, 4, 5);
+        }
+
+        function SearchGarden() {
+            showImage('images/HiddenGarden.png');
+            document.getElementById('textPrompt').innerText = 'The garden is beautiful but you find nothing of interest. Perhaps something here can reveal secrets of the castle.';
+            setChoice('choice1', 'Return', ExploreCastleGrounds);
+            hideChoices(2, 3, 4, 5);
+        }
+
+        function EnterCastle() {
+            showImage('images/InsideCastle.png');
+            addQuest('Investigate the Castle Interior');
+            document.getElementById('textPrompt').innerText = 'You cautiously enter the castle, finding it eerily silent. There must be secrets hidden within these walls.';
+            setChoice('choice1', 'Explore Hallway', ExploreHallway);
+            setChoice('choice2', 'Return', GoWest);
+            hideChoices(3, 4, 5);
+        }
+
+        function ExploreHallway() {
+            showImage('images/CastleHallway.png');
+            document.getElementById('textPrompt').innerText = 'The hallway is lined with portraits whose eyes seem to follow you. One portrait, in particular, looks unusual.';
+            setChoice('choice1', 'Investigate Portraits', InvestigatePortraits);
+            setChoice('choice2', 'Return', EnterCastle);
+            hideChoices(3, 4, 5);
+        }
+
+        function InvestigatePortraits() {
+            showImage('images/MysteriousPortraits.png');
+            document.getElementById('textPrompt').innerText = 'One of the portraits hides a lever, opening a hidden door.';
+            setChoice('choice1', 'Enter Hidden Door', EnterHiddenDoor);
+            setChoice('choice2', 'Return', ExploreHallway);
+            hideChoices(3, 4, 5);
+        }
+
+        function EnterHiddenDoor() {
+            showImage('images/HiddenRoom.png');
+            completeQuest('Investigate the Castle Interior');
+            document.getElementById('textPrompt').innerText = 'Behind the door lies a room filled with ancient scrolls and maps. You might find something important here.';
+            pickUpItem('ancient scroll');
+            setChoice('choice1', 'Return', ExploreHallway);
+            hideChoices(2, 3, 4, 5);
+        }
+        function GoEast() {
+            showImage('images/EnchantedForest.jfif'); // Replace with your enchanted forest image URL
+            document.getElementById('textPrompt').innerText = 'Heading east, you enter an enchanted forest filled with mystical creatures.';
+            setChoice('choice1', 'Talk to the Fairy', TalkFairy);
+            setChoice('choice2', 'Explore Deeper', ExploreDeeper);
+            setChoice('choice3', 'Return', StartGame);
+            setChoice('choice4', '', null);
+            setChoice('choice5', '', null);
+            updateStatus();
+        }
+
+        function TalkFairy() {
+            showImage('images/Fairy.jfif'); // Replace with a fairy image URL
+            document.getElementById('textPrompt').innerText = 'A friendly fairy offers to guide you to a secret glade.';
+            setChoice('choice1', 'Follow Fairy', FollowFairy);
+            setChoice('choice2', 'Return', GoEast);
+            hideChoices(3, 4, 5);
+        }
+
+        function FollowFairy() {
+            showImage('images/SecretGlade.png'); // Replace with a secret glade image URL
+            document.getElementById('textPrompt').innerText = 'The fairy leads you to a glade where you find a healing spring.';
+            encounterHazard(-20, 'The healing spring restores your health.');
+            setChoice('choice1', 'Return', TalkFairy);
+            hideChoices(2, 3, 4, 5);
+        }
+
+        function ExploreDeeper() {
+            showImage('images/DeepForest.jpg'); // Replace with a deep forest image URL
+            document.getElementById('textPrompt').innerText = 'You venture deeper into the forest and find a talking tree.';
+            setChoice('choice1', 'Talk to Tree', TalkTree);
+            setChoice('choice2', 'Return', GoEast);
+            hideChoices(3, 4, 5);
+        }
+
+        function TalkTree() {
+            showImage('images/TalkingTree.jfif'); // Replace with a talking tree image URL
+            document.getElementById('textPrompt').innerText = 'The tree tells you about an ancient curse that can be broken with a special gem.';
+            addQuest('Break the forest curse');
+            setChoice('choice1', 'Search for Gem', SearchGem);
+            setChoice('choice2', 'Return', ExploreDeeper);
+            hideChoices(3, 4, 5);
+        }
+
+        function SearchGem() {
+            if (inventory.includes('mysterious gem')) {
+                document.getElementById('textPrompt').innerText = 'Using the mysterious gem, you break the curse and the forest rejoices.';
+                completeQuest('Break the forest curse');
+                setChoice('choice1', 'Return', ExploreDeeper);
+
+            } else {
+                document.getElementById('textPrompt').innerText = 'You search for the gem but cannot find it.';
+                setChoice('choice1', 'Return', ExploreDeeper);
+            }
+            setChoice('choice2', '', null);
+            hideChoices(3, 4, 5);
+        }
+
+        Reset;
+        StartGame;
+    </script>
+</body>
+
+</html>
